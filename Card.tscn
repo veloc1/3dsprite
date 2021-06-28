@@ -3,98 +3,11 @@
 [ext_resource path="res://icon.png" type="Texture" id=1]
 [ext_resource path="res://Card.gd" type="Script" id=2]
 [ext_resource path="res://shadow.png" type="Texture" id=3]
-
-[sub_resource type="Shader" id=1]
-resource_local_to_scene = true
-code = "shader_type canvas_item;
-
-uniform float width = 64;
-uniform float height = 64;
-uniform float scale = 1;
-uniform bool skew_enabled = false;
-uniform vec2 mouse_position = vec2(0, 0);
-uniform vec4 shadow_color : hint_color;
-
-
-void vertex() {
-	float x = VERTEX.x;
-	float y = VERTEX.y;
-	
-	float half_width = width / 2.0;
-	float half_height = height / 2.0;
-	
-	if (x <= 0.0) {
-		x = -half_width * scale;
-	} else {
-		x = half_width * scale;
-	}
-	
-	if (y <= 0.0) {
-		y = -half_height * scale;
-	} else {
-		y = half_height * scale;
-	}
-	
-	VERTEX = vec2(x, y);
-}
-
-void fragment() {
-	vec2 uv = UV;
-
-	// map skew to [-0.5, 0.5]
-	float skew_x = mouse_position.x / width;
-	float skew_y = mouse_position.y / height;
-	
-	// map to [-0.5, 0.5]
-	uv.x = (uv.x - 0.5);
-	uv.y = (uv.y - 0.5);
-	
-	float sx = 1.0 - (uv.x * skew_x);
-	float sy = 1.0 - (uv.y * skew_y);
-	
-	float z = 1.0 + (sx * sy) / 2.0;
-	uv.x = uv.x / z;
-	uv.y = uv.y / z;
-	
-	// scale a bit down a reset mapping from [-0.5, 0.5] to [0, 1]
-	uv.x = uv.x / 0.45 + 0.5;
-	uv.y = uv.y / 0.45 + 0.5;
-	//uv.x = uv.x + 0.5;
-	// uv.y = uv.y + 0.5;
-	COLOR = texture(TEXTURE, uv);
-	
-	if (uv.x < 0.0 || uv.x > 1.0) {
-		COLOR.a = 0.0;
-	} else if (uv.y < 0.0 || uv.y > 1.0) {
-		COLOR.a = 0.0;
-	} else {
-		// brightness
-		float brightness = 1.0 - mouse_position.y / (height / 2.0) * 0.2;
-		COLOR.rgb = texture(TEXTURE, uv, 1.0).rgb * brightness;
-		
-		// shadow
-		vec2 size = TEXTURE_PIXEL_SIZE * 1.0;
-		float has_image_nearby = texture(TEXTURE, uv + vec2(-size.x, 0)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(size.x, 0)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(0, -size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(0, size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(size.x, size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(size.x, -size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(-size.x, size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(-size.x, -size.y)).a;
-		// if total nearby alpha is 0 - then there is no image
-		has_image_nearby = min(has_image_nearby, 1.0);
-		//COLOR.rgb = mix(COLOR.rgb, shadow_color.rgb, has_image_nearby - COLOR.a);
-		
-		COLOR.a = texture(TEXTURE, uv, 1.0).a;
-		
-		//vec4 color = texture(TEXTURE, uv);
-		//COLOR = mix(color, shadow_color, has_image_nearby - color.a);
-	}
-}"
+[ext_resource path="res://Card.shader" type="Shader" id=4]
+[ext_resource path="res://Shadow.shader" type="Shader" id=5]
 
 [sub_resource type="ShaderMaterial" id=2]
-shader = SubResource( 1 )
+shader = ExtResource( 4 )
 shader_param/width = 64.0
 shader_param/height = 64.0
 shader_param/scale = 1.0
@@ -102,56 +15,8 @@ shader_param/skew_enabled = true
 shader_param/mouse_position = Vector2( 32, 0 )
 shader_param/shadow_color = Color( 1, 1, 1, 1 )
 
-[sub_resource type="Shader" id=3]
-code = "shader_type canvas_item;
-
-uniform float width = 64;
-uniform float height = 64;
-uniform float scale = 1;
-uniform bool skew_enabled = false;
-uniform vec2 mouse_position = vec2(0, 0);
-
-
-void vertex() {
-	// scale
-	float x = VERTEX.x;
-	float y = VERTEX.y;
-	
-	float half_width = width / 2.0;
-	float half_height = height / 2.0;
-	
-	if (x <= 0.0) {
-		x = -half_width * scale;
-	} else {
-		x = half_width * scale;
-	}
-	
-	if (y <= 0.0) {
-		y = -half_height * scale;
-	} else {
-		y = half_height * scale;
-	}
-	
-	if (skew_enabled) {
-		/*float sx = mouse_position.x * ((skew_amount + skew_amount) / width);
-		float sy = mouse_position.y * ((skew_amount + skew_amount) / height);
-		x += sx * sign(x) + sy * sign(x);
-		y += sy * sign(y) + sx * sign(y);*/
-		
-		float sx = mouse_position.x / x; // 1 - mouse is close to edge, 0 - mouse in center, -1 - mouse on other edge
-		float sy = mouse_position.y / y;
-		float z = 1.0 + sx / 10.0 + sy / 10.0; // z can go from 0.9 to 1.1
-		// float fake_xz = mouse_position.x / half_width + 3.0;
-		// float fake_yz = mouse_position.y / half_height * sign(y) + 3.0;
-		x = x / z;
-		y = y / z;
-	}
-	
-	VERTEX = vec2(x, y);
-}"
-
 [sub_resource type="ShaderMaterial" id=4]
-shader = SubResource( 3 )
+shader = ExtResource( 5 )
 shader_param/width = 76.0
 shader_param/height = 76.0
 shader_param/scale = 1.0
