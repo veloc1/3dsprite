@@ -64,23 +64,6 @@ void fragment() {
 		float brightness = 1.0 - mouse_position.y / (height / 2.0) * 0.2;
 		COLOR.rgb = texture(TEXTURE, uv, 1.0).rgb * brightness;
 		
-		// shadow
-		vec2 size = TEXTURE_PIXEL_SIZE * 1.0;
-		float has_image_nearby = texture(TEXTURE, uv + vec2(-size.x, 0)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(size.x, 0)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(0, -size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(0, size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(size.x, size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(size.x, -size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(-size.x, size.y)).a;
-		has_image_nearby += texture(TEXTURE, uv + vec2(-size.x, -size.y)).a;
-		// if total nearby alpha is 0 - then there is no image
-		has_image_nearby = min(has_image_nearby, 1.0);
-		//COLOR.rgb = mix(COLOR.rgb, shadow_color.rgb, has_image_nearby - COLOR.a);
-		
 		COLOR.a = texture(TEXTURE, uv, 1.0).a;
-		
-		//vec4 color = texture(TEXTURE, uv);
-		//COLOR = mix(color, shadow_color, has_image_nearby - color.a);
 	}
 }
