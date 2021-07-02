@@ -11,9 +11,9 @@ shader = ExtResource( 4 )
 shader_param/width = 64.0
 shader_param/height = 64.0
 shader_param/scale = 1.0
-shader_param/skew_enabled = true
+shader_param/skew_enabled = false
 shader_param/mouse_position = Vector2( 32, 0 )
-shader_param/shadow_color = Color( 1, 1, 1, 1 )
+shader_param/shadow_color = null
 
 [sub_resource type="ShaderMaterial" id=2]
 shader = ExtResource( 5 )
